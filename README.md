@@ -141,3 +141,45 @@ Mengubah nilai awal counter di StatefulWidget.
 Mengubah konfigurasi ThemeData di MaterialApp.
 
 Menambahkan package baru yang memengaruhi seluruh aplikasi.
+
+
+**Tugas 8**
+
+1. Jelaskan perbedaan antara Navigator.push() dan Navigator.pushReplacement() pada Flutter. Dalam kasus apa sebaiknya masing-masing digunakan pada aplikasi Football Shop kamu?
+
+
+Navigator.push() menambahkan halaman baru di atas stack. Pengguna masih bisa kembali ke halaman sebelumnya (back).
+
+Navigator.pushReplacement() mengganti halaman sekarang dengan halaman baru. Halaman lama dihapus dari stack, jadi tidak bisa kembali ke sana.
+
+Gunakan Navigator.push() ketika:
+
+Dari Product List ke Product Detail (user mungkin ingin kembali untuk lihat produk lain).
+
+dSX
+
+Gunakan Navigator.pushReplacement() keti:
+Setelah Login/Signup sukses ke Home (mencegah kembali ke layar auth).
+
+
+2.  Bagaimana kamu memanfaatkan hierarchy widget seperti Scaffold, AppBar, dan Drawer untuk membangun struktur halaman yang konsisten di seluruh aplikasi
+
+intinya kita pakai Scaffold sebagai “kerangka”, AppBar untuk header konsisten (judul/aksi), dan Drawer sebagai navigasi global. Buat satu layout reusable agar setiap halaman pakai struktur yang sama tanpa copy–paste.
+
+contoh:
+Shell/Layout tunggal: bungkus Scaffold, AppBar, Drawer dalam widget khusus dan terima title, actions, dan body sebagai parameter.
+
+Tema konsisten: warna/typography diatur lewat ThemeData (hindari hardcode per halaman).
+
+Navigasi di Drawer: item navigasi mengarah ke route utama tandai item aktif supaya user tahu posisi.
+
+
+3.Dalam konteks desain antarmuka, apa kelebihan menggunakan layout widget seperti Padding, SingleChildScrollView, dan ListView saat menampilkan elemen-elemen form? Berikan contoh penggunaannya dari aplikasi kamu.
+
+
+Dalam form Flutter, Padding, SingleChildScrollView, dan ListView membantu menjaga UI rapi, nyaman, dan tahan terhadap overflow. Padding memberi jarak konsisten di sekeliling setiap field sehingga form lebih mudah dipindai dan tidak “mepet” tepi layar persis seperti yang kita lakukan pada Product Form (misalnya jarak 8 px di tiap TextFormField). SingleChildScrollView membuat seluruh isi form dapat digulir sehingga tidak terjadi overflow saat keyboard muncul, cocok untuk form pendek sedang seperti halaman “Add Product”   pengguna tetap bisa melihat tombol Save tanpa elemen tertutup keyboard. Sementara itu, ListView lebih pas untuk form yang panjang atau dinamis—misalnya daftar input stok per ukuran S, M, L, XL di Football Shop karena membangun item secara efisien, mendukung pemisah antar‐elemen lewat separator, dan menjaga performa saat jumlah field bertambah. kita gunakan Padding untuk ritme visual yang konsisten, SingleChildScrollView untuk mencegah overflow dan memastikan form tetap bisa diakses saat keyboard tampil, dan ListView ketika jumlah input banyak/berulang agar tetap ringan dan terstruktur.
+
+
+4. Bagaimana kamu menyesuaikan warna tema agar aplikasi Football Shop memiliki identitas visual yang konsisten dengan brand toko?
+
+Untuk menjaga identitas visual Football Shop tetap konsisten, tetapkan palet warna brand (primary/secondary/netral/error) lalu taruhh lewat ThemeData dan ColorScheme agar seluruh komponen AppBar, tombol, field, ikon, hingga teks otomatis memakai warna yang sama tanpa hardcode per halaman. Gunakan Material 3  dan sesuaikan AppBarTheme, ElevatedButtonTheme, InputDecorationTheme, serta TextTheme sehingga judul, label, dan state  selaras dengan brand. Bangun skema dari warna utama  memakai ColorScheme.fromSeed, sediakan darkTheme agar konsisten di mode gelap, dan pertahankan kontras warna untuk aksesibilitas. Untuk kebutuhan khusus seperti badg diskon atau Featured, tambahkan ThemeExtension sehingga aset warna/gradien tetap tersentralisasi. Dengan pendekatan ini, kita cukup pakai komponen standar Flutter dan seluruh aplikasi akan memantulkan identitas brand secara konsisten.

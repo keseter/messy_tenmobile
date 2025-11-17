@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:messytenmobile/widgets/left_drawer.dart';
+import 'dart:convert';
+import 'package:provider/provider.dart';
+import 'package:pbp_django_auth/pbp_django_auth.dart';
+import 'package:messytenmobile/screens/menu.dart';
 
 class ProductFormPage extends StatefulWidget {
   const ProductFormPage({super.key});
@@ -11,263 +14,239 @@ class ProductFormPage extends StatefulWidget {
 
 class _ProductFormPageState extends State<ProductFormPage> {
   final _formKey = GlobalKey<FormState>();
-
-  String _title = "";
-  int _price = 0; // default
-  String _content = "";
-  String? _category; // wajib dipilih mulai null agar tervalidasi
+  String _name = "";
+  int _price = 0;
+  String _description = "";
+  String _category = "jerseys"; // default
   String _thumbnail = "";
   bool _isFeatured = false; // default
 
   final List<String> _categories = [
     'jerseys',
+    'shorts',
+    'training_wear',
     'footwear',
     'accessories',
     'equipment',
     'collectibles',
-    'fan_gear',
+    'fan_gear'
   ];
-
-  // Helper: validasi URL http/https sederhana
-  bool _isValidHttpUrl(String s) {
-    final uri = Uri.tryParse(s);
-    return uri != null &&
-        (uri.isScheme('http') || uri.isScheme('https')) &&
-        uri.host.isNotEmpty;
-  }
-
   @override
   Widget build(BuildContext context) {
+    final request = context.watch<CookieRequest>();
     return Scaffold(
       appBar: AppBar(
         title: const Center(child: Text('Add Product Form')),
         backgroundColor: Colors.indigo,
         foregroundColor: Colors.white,
       ),
-      drawer: LeftDrawer(),
+      drawer: const LeftDrawer(),
       body: Form(
         key: _formKey,
         child: SingleChildScrollView(
-          child:
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            // === Title ===
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: TextFormField(
-                decoration: InputDecoration(
-                  hintText: "Product Name",
-                  labelText: "Product Name",
-                  border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(5.0)),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // === Title ===
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: TextFormField(
+                  decoration: InputDecoration(
+                    hintText: "Product Name",
+                    labelText: "Product Name",
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(5.0),
+                    ),
+                  ),
+                  onChanged: (String? value) {
+                    setState(() {
+                      _name = value!;
+                    });
+                  },
+                  validator: (String? value) {
+                    if (value == null || value.isEmpty) {
+                      return "Product name tidak boleh kosong!";
+                    }
+                    return null;
+                  },
                 ),
-                inputFormatters: [LengthLimitingTextInputFormatter(60)],
-                onChanged: (value) => setState(() => _title = value),
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return "Product Name tidak boleh kosong!";
-                  }
-                  if (value.trim().length < 3) {
-                    return "Product Name minimal 3 karakter.";
-                  }
-                  // max 60
-                  if (value.trim().length > 60) {
-                    return "Product Name maksimal 60 karakter.";
-                  }
-                  return null;
-                },
               ),
-            ),
 
-            // === Price ===
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: TextFormField(
-                decoration: InputDecoration(
-                  hintText: "Harga (Rp)",
-                  labelText: "Harga",
-                  prefixText: "Rp ",
-                  border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(5.0)),
+              // === Price ===
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: TextFormField(
+                  decoration: InputDecoration(
+                    hintText: "Product Price",
+                    labelText: "Price",
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(5.0),
+                    ),
+                  ),
+                  keyboardType: TextInputType.number,
+                  onChanged: (String? value) {
+                    setState(() {
+                      _price = int.tryParse(value!) ?? 0;
+                    });
+                  },
+                  validator: (String? value) {
+                    if (value == null || value.isEmpty) {
+                      return "Price tidak boleh kosong!";
+                    }
+                    if (int.tryParse(value) == null) {
+                      return "Price harus berupa angka!";
+                    }
+                    return null;
+                  },
                 ),
-                keyboardType: TextInputType.number,
-                inputFormatters: [
-                  FilteringTextInputFormatter.digitsOnly,
-                  LengthLimitingTextInputFormatter(12)
-                ],
-                onChanged: (value) =>
-                    setState(() => _price = int.tryParse(value) ?? 0),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return "Harga tidak boleh kosong!";
-                  }
-                  final v = int.tryParse(value);
-                  if (v == null) {
-                    return "Harga harus berupa angka.";
-                  }
-                  if (v <= 0) {
-                    return "Harga harus lebih dari 0.";
-                  }
-                  return null;
-                },
               ),
-            ),
 
-            // === Content ===
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: TextFormField(
-                maxLines: 5,
-                decoration: InputDecoration(
-                  hintText: "Deskripsi Produk",
-                  labelText: "Deskripsi Produk",
-                  border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(5.0)),
+              // === Content ===
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: TextFormField(
+                  maxLines: 5,
+                  decoration: InputDecoration(
+                    hintText: "Product Description",
+                    labelText: "Product Description",
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(5.0),
+                    ),
+                  ),
+                  onChanged: (String? value) {
+                    setState(() {
+                      _description = value!;
+                    });
+                  },
+                  validator: (String? value) {
+                    if (value == null || value.isEmpty) {
+                      return "Product Description tidak boleh kosong!";
+                    }
+                    return null;
+                  },
                 ),
-                inputFormatters: [LengthLimitingTextInputFormatter(1000)],
-                onChanged: (value) => setState(() => _content = value),
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return "Deskripsi tidak boleh kosong!";
-                  }
-                  if (value.trim().length < 10) {
-                    return "Deskripsi minimal 10 karakter.";
-                  }
-                  return null;
-                },
               ),
-            ),
 
-            // === Category  ===
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: DropdownButtonFormField<String>(
-                decoration: InputDecoration(
-                  labelText: "Kategori",
-                  border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(5.0)),
-                ),
-                value: _category,
-                items: _categories
-                    .map((cat) => DropdownMenuItem(
+              // === Category ===
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: DropdownButtonFormField<String>(
+                  decoration: InputDecoration(
+                    labelText: "Kategori",
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(5.0),
+                    ),
+                  ),
+                  value: _category,
+                  items: _categories
+                      .map(
+                        (cat) => DropdownMenuItem(
                           value: cat,
                           child: Text(cat[0].toUpperCase() + cat.substring(1)),
-                        ))
-                    .toList(),
-                onChanged: (newValue) => setState(() => _category = newValue),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return "Kategori wajib dipilih.";
-                  }
-                  if (!_categories.contains(value)) {
-                    return "Kategori tidak valid.";
-                  }
-                  return null;
-                },
-              ),
-            ),
-
-            // === Thumbnail URL ) ===
-
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: TextFormField(
-                decoration: InputDecoration(
-                  hintText: "URL Thumbnail",
-                  labelText: "URL Thumbnail",
-                  border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(5.0)),
-                ),
-                onChanged: (value) => setState(() => _thumbnail = value),
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return "URL Thumbnail tidak boleh kosong!";
-                  }
-                  final s = value.trim();
-                  final uri = Uri.tryParse(s);
-                  final isValid = uri != null &&
-                      (uri.isScheme('http') || uri.isScheme('https')) &&
-                      uri.host.isNotEmpty;
-                  if (!isValid) {
-                    return "Format URL tidak valid (harus http/https).";
-                  }
-                  if (s.length > 2048) {
-                    return "URL terlalu panjang.";
-                  }
-                  return null;
-                },
-              ),
-            ),
-
-            // === Is Featured ===
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: SwitchListTile(
-                title: const Text("Tandai sebagai Produk Unggulan"),
-                value: _isFeatured,
-                onChanged: (value) => setState(() => _isFeatured = value),
-              ),
-            ),
-
-            // === Tombol Simpan ===
-            Align(
-              alignment: Alignment.bottomCenter,
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: ElevatedButton(
-                  style: ButtonStyle(
-                    backgroundColor: MaterialStateProperty.all(Colors.indigo),
-                  ),
-                  onPressed: () {
-                    if (_formKey.currentState!.validate()) {
-                      showDialog(
-                        context: context,
-                        builder: (context) {
-                          return AlertDialog(
-                            title: const Text('Produk berhasil tersimpan'),
-                            content: SingleChildScrollView(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text('Judul: $_title'),
-                                  Text('Harga: Rp $_price'),
-                                  Text('Deskripsi: $_content'),
-                                  Text('Kategori: $_category'),
-                                  Text(
-                                      'Thumbnail: ${_thumbnail.isEmpty ? "-" : _thumbnail}'),
-                                  Text(
-                                      'Unggulan: ${_isFeatured ? "Ya" : "Tidak"}'),
-                                ],
-                              ),
-                            ),
-                            actions: [
-                              TextButton(
-                                child: const Text('OK'),
-                                onPressed: () {
-                                  Navigator.pop(context);
-                                  _formKey.currentState!.reset();
-                                  // Opsi: reset state juga
-                                  setState(() {
-                                    _title = "";
-                                    _price = 0;
-                                    _content = "";
-                                    _category = null;
-                                    _thumbnail = "";
-                                    _isFeatured = false;
-                                  });
-                                },
-                              ),
-                            ],
-                          );
-                        },
-                      );
-                    }
+                        ),
+                      )
+                      .toList(),
+                  onChanged: (String? newValue) {
+                    setState(() {
+                      _category = newValue!;
+                    });
                   },
-                  child:
-                      const Text("Save", style: TextStyle(color: Colors.white)),
                 ),
               ),
-            ),
-          ]),
+
+              // === Thumbnail URL ===
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: TextFormField(
+                  decoration: InputDecoration(
+                    hintText: "URL Thumbnail (opsional)",
+                    labelText: "URL Thumbnail",
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(5.0),
+                    ),
+                  ),
+                  onChanged: (String? value) {
+                    setState(() {
+                      _thumbnail = value!;
+                    });
+                  },
+                ),
+              ),
+
+              // === Is Featured ===
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: SwitchListTile(
+                  title: const Text("Tandai sebagai Product Unggulan"),
+                  value: _isFeatured,
+                  onChanged: (bool value) {
+                    setState(() {
+                      _isFeatured = value;
+                    });
+                  },
+                ),
+              ),
+
+              // === Tombol Simpan ===
+              Align(
+                alignment: Alignment.bottomCenter,
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: ElevatedButton(
+                    style: ButtonStyle(
+                      backgroundColor: MaterialStateProperty.all(Colors.indigo),
+                    ),
+                    onPressed: () async {
+                      if (_formKey.currentState!.validate()) {
+                        // TODO: Replace the URL with your app's URL
+                        // To connect Android emulator with Django on localhost, use URL http://10.0.2.2/
+                        // If you using chrome,  use URL http://localhost:8000
+
+                        final response = await request.postJson(
+                          "http://10.0.2.2:8000/create-flutter/",
+                          jsonEncode({
+                            "title": _name,
+                            "price": _price,
+                            "content": _description,
+                            "thumbnail": _thumbnail,
+                            "category": _category,
+                            "is_featured": _isFeatured,
+                          }),
+                        );
+                        if (context.mounted) {
+                          if (response['status'] == 'success') {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text("News successfully saved!"),
+                              ),
+                            );
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => MyHomePage(),
+                              ),
+                            );
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                  "Something went wrong, please try again.",
+                                ),
+                              ),
+                            );
+                          }
+                        }
+                      }
+                    },
+                    child: const Text(
+                      "Save",
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

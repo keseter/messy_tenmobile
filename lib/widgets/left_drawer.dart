@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:messytenmobile/screens/menu.dart';
 import 'package:messytenmobile/screens/productlist_form.dart';
+import 'package:messytenmobile/screens/product_entry_list.dart';
 
 class LeftDrawer extends StatelessWidget {
   const LeftDrawer({super.key});
@@ -65,6 +66,18 @@ class LeftDrawer extends StatelessWidget {
                   MaterialPageRoute(
                     builder: (context) => ProductFormPage(),
                   ));
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.add_reaction_rounded),
+            title: const Text('Product List'),
+            onTap: () {
+              // Route to news list page
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => const ProductEntryListPage()),
+              );
             },
           ),
         ],

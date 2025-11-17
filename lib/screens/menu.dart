@@ -25,6 +25,7 @@ class MyHomePage extends StatelessWidget {
         ),
         // Warna latar belakang AppBar diambil dari skema warna tema aplikasi.
         backgroundColor: Theme.of(context).colorScheme.primary,
+        automaticallyImplyLeading: true,
       ),
       drawer: LeftDrawer(),
       // Body halaman dengan padding di sekelilingnya.

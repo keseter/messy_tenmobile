@@ -17,7 +17,8 @@ class _ProductEntryListPageState extends State<ProductEntryListPage> {
   bool showOnlyMyProducts = false;
 
   Future<List<ProductEntry>> fetchProducts(CookieRequest request) async {
-    final response = await request.get('http://10.0.2.2:8000/json/');
+    final response = await request
+        .get('https://edward-jeremy41-messyten.pbp.cs.ui.ac.id/json/');
     List<ProductEntry> listProducts = [];
 
     for (var d in response) {

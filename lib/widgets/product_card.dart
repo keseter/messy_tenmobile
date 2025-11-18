@@ -47,8 +47,8 @@ class ItemCard extends StatelessWidget {
             // To connect Android emulator with Django on localhost, use URL http://10.0.2.2/
             // If you using chrome,  use URL http://localhost:8000
 
-            final response =
-                await request.logout("http://10.0.2.2:8000/auth/logout/");
+            final response = await request.logout(
+                "https://edward-jeremy41-messyten.pbp.cs.ui.ac.id/auth/logout/");
 
             String message = response["message"];
             if (context.mounted) {
